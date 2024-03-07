@@ -1,7 +1,9 @@
-import "./App.css";
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { Profile } from "./profile";
+import Playlist from './spotifyGetPlaylist';
 
-const clientId = "51a424f7865249b7a40a7f54aba825c2"; // Replace with your client ID
+const clientId = "51a424f7865249b7a40a7f54aba825c2"; 
 const params = new URLSearchParams(window.location.search);
 const code = params.get("code");
 
@@ -12,7 +14,7 @@ export async function init() {
   } else {
     const accessToken = await getAccessToken(clientId, code);
     const profile = await fetchProfile(accessToken);
-    return profile;
+    return { accessToken, profile };
   }
 }
 
@@ -83,14 +85,40 @@ async function fetchProfile(token) {
 }
 
 export function App(props) {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <Profile
-		  props={props}
+  const [playlistData, setPlaylistData] = useState(null);
+  const [error, setError] = useState(null);
 
-        ></Profile>
-      </header>
-    </div>
-  );
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const { accessToken } = await init();
+        // You may replace the hardcoded playlist ID with the one you want to fetch
+        const response = await axios.get('https://api.spotify.com/v1/playlists/3tK5Fh5GF92ehN8N2L0EYW/tracks', {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        });
+        setPlaylistData(response.data.items);
+      } catch (error) {
+        setError(error);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  } else if (!playlistData) {
+    return <div>Loading...</div>;
+  } else {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <Profile props={props} />
+          <Playlist tracks={playlistData} />
+        </header>
+      </div>
+    );
+  }
 }
