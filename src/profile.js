@@ -1,8 +1,8 @@
 export function Profile(props) {
-  if (props.props === undefined) {
+  if (props.profile === undefined) {
     return <div>Try to login</div>;
   }
-  props = props.props.props;
+  props = props.profile;
   console.log(props);
   return (
     <section id="profile">
