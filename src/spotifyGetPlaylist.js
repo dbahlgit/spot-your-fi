@@ -1,5 +1,19 @@
 import React, { useEffect, useState } from "react";
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+  
+
+const keyPairReduction = [
+    'uri',
+    'track_href',
+    'analysis_url',
+    'mode',
+    'valence'
+];
+
+
 const Playlist = ({ token }) => {
     const [tracks, setTracks] = useState([]);
     const [audioFeatures, setAudioFeatures] = useState([]);
@@ -26,26 +40,25 @@ const Playlist = ({ token }) => {
                 // track IDs
                 const trackIds = data.items.map((item) => item.track.id);
 
-                
-                const batchSize = 50;
                 const audioFeaturesData = [];
-                for (let i = 0; i < trackIds.length; i += batchSize) {
-                    const batchIds = trackIds.slice(i, i + batchSize);
+                for (let i = 0; i < trackIds.length; i ++) {
                     const audioFeatureResponses = await Promise.all(
-                        batchIds.map((id) =>
-                            fetch(`https://api.spotify.com/v1/audio-features/${id}`, {
-                                headers: {
-                                    Authorization: `Bearer ${token}`,
-                                },
-                            }).then((response) => {
-                                if (!response.ok) {
-                                    throw new Error("Failed to fetch audio features");
-                                }
-                                return response.json();
-                            })
-                        )
+                        fetch(`https://api.spotify.com/v1/audio-features/${trackIds[i]}`, {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                            },
+                        }).then((response) => {
+                            if (!response.ok) {
+                                console.log(response.json());
+                                throw new Error("Failed to fetch audio features");
+                            }
+                            return response.json();
+                        }).catch(e=>{
+                            console.log(e);
+                        })                         
                     );
                     audioFeaturesData.push(...audioFeatureResponses);
+                    await sleep(300);
                 }
                 
                 
@@ -53,7 +66,10 @@ const Playlist = ({ token }) => {
                 
                 // Serialize audio features data to JSON
                 const json = JSON.stringify(audioFeaturesData);
-                console.log(json); // Consoling the data right now! 
+                keyPairReduction.forEach(key => {
+                    delete json[key];
+                })
+                console.log(json); 
             } catch (error) {
                 console.error("Error fetching playlist tracks:", error);
             }
@@ -61,6 +77,8 @@ const Playlist = ({ token }) => {
 
         fetchPlaylistTracks();
     }, [token]);
+  /// TODO: Parse the json object into csv file and send it to the backend 
+
 
     return (
         <div>
