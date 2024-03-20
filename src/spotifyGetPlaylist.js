@@ -23,10 +23,10 @@ const Playlist = ({ token }) => {
                 const data = await response.json();
                 setTracks(data.items);
                 
-                // Extract track IDs
+                // track IDs
                 const trackIds = data.items.map((item) => item.track.id);
 
-                // Fetch audio features in batches
+                
                 const batchSize = 50;
                 const audioFeaturesData = [];
                 for (let i = 0; i < trackIds.length; i += batchSize) {
