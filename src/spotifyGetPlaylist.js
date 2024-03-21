@@ -42,8 +42,7 @@ const Playlist = ({ token }) => {
 
                 const audioFeaturesData = [];
                 for (let i = 0; i < trackIds.length; i ++) {
-                    const audioFeatureResponses = await Promise.all(
-                        fetch(`https://api.spotify.com/v1/audio-features/${trackIds[i]}`, {
+                    const audioFeatureResponses = await fetch(`https://api.spotify.com/v1/audio-features/${trackIds[i]}`, {
                             headers: {
                                 Authorization: `Bearer ${token}`,
                             },
@@ -56,20 +55,17 @@ const Playlist = ({ token }) => {
                         }).catch(e=>{
                             console.log(e);
                         })                         
-                    );
-                    audioFeaturesData.push(...audioFeatureResponses);
+                    console.warn(audioFeatureResponses);
+                    audioFeaturesData.push(audioFeatureResponses);
                     await sleep(300);
                 }
                 
-                
-                setAudioFeatures(audioFeaturesData);
-                
-                // Serialize audio features data to JSON
-                const json = JSON.stringify(audioFeaturesData);
                 keyPairReduction.forEach(key => {
-                    delete json[key];
+                    audioFeaturesData.forEach(el=> {
+                        delete el[key]
+                    });
                 })
-                console.log(json); 
+                setAudioFeatures(audioFeaturesData);
             } catch (error) {
                 console.error("Error fetching playlist tracks:", error);
             }
