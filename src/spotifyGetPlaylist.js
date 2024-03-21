@@ -66,6 +66,13 @@ const Playlist = ({ token }) => {
                     });
                 })
                 setAudioFeatures(audioFeaturesData);
+                fetch(`http://127.0.0.1:5000/save`,{
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(audioFeaturesData)
+                }).then(res=>{console.log(res)});
             } catch (error) {
                 console.error("Error fetching playlist tracks:", error);
             }
@@ -73,8 +80,7 @@ const Playlist = ({ token }) => {
 
         fetchPlaylistTracks();
     }, [token]);
-  /// TODO: Parse the json object into csv file and send it to the backend 
-
+  /// TODO: Parse the json object into csv file 
 
     return (
         <div>
