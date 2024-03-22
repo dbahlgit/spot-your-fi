@@ -10,7 +10,11 @@ const keyPairReduction = [
     'track_href',
     'analysis_url',
     'mode',
-    'valence'
+    'valence',
+    'key',
+    'duration_ms',
+    'type',
+    
 ];
 
 
@@ -66,10 +70,10 @@ const Playlist = ({ token }) => {
                     });
                 })
                 setAudioFeatures(audioFeaturesData);
-                fetch(`http://127.0.0.1:5000/save`,{
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
+               fetch(`http://127.0.0.1:5000/tracks`,{
+                   method: "POST",
+                   headers: {
+                       "Content-Type": "application/json"
                     },
                     body: JSON.stringify(audioFeaturesData)
                 }).then(res=>{console.log(res)});
