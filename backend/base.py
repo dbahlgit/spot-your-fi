@@ -15,9 +15,9 @@ def traks():
         json.dump(request.json,f)          
     #df_myplaylist = pandas.json_normalize(request.json)
     #print(df_myplaylist)
-     
+    df_myplaylist = pandas.json_normalize(request.json) 
     print(request.json)
-
+    print(df_myplaylist)
     return "received"
 
 
