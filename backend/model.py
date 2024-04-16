@@ -7,7 +7,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import plot_confusion_matrix
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import ConfusionMatrixDisplay
 from sklearn import metrics 
 from sklearn.metrics import f1_score
 from sklearn.ensemble import RandomForestClassifier
@@ -22,26 +23,31 @@ from spotipy import oauth2
 
 # In the input file we are left with number,track_id,duration_ms,dancebility,energy
 
-df = pd.read_csv('dataset.csv')
-df.drop(columns=['favorite', 'length','popularity'])
-
+df_const = pd.read_csv('dataset.csv')
+df_const.drop(columns=['length','popularity'])
+df_const['favorite'] = np.random.choice([0, 1], size=len(df_const))
 
 
 def train(df_myplaylist):
-    df = pd.concat([df,df_myplaylist], axis=0)
-    df.shape
+    df_myplaylist['favorite'] = np.random.choice([0, 1], size=len(df_myplaylist))
+    df = pd.concat([df_const,df_myplaylist], axis=0)
+    print(df.shape)
     shuffle_df = df.sample(frac=1)
     train_size = int(0.8 * len(df))
-    train_set = shuffle_df[:train_size]
+    train_set = shuffle_df[:train_size].dropna()
     test_set = shuffle_df[train_size:]
-    train_set.head()
+    train_set.dropna(subset=['favorite'], inplace=True)
+    print(train_set.head())
     X = train_set.drop(columns=['favorite', 'track_id'])
     y = train_set.favorite
-    X.head()
-    y.value_counts()
+    print(y)
+
+    if y.isnull().any():
+        print("Warning: NaN values still present in the target variable 'favorite'.")
 
     oversample = SMOTE()
-    X_train, y_train = oversample.fit_resample(X, y) 
+    print(np.unique(y))
+    X_train, y_train = oversample.fit_resample(X, y)
     X_train.head()
     y_train.value_counts()
     test_set.head()
@@ -60,7 +66,12 @@ def train(df_myplaylist):
 
     # Logistic Regression confusion matrix
     lr_preds = lr.predict(X_train)
-    plot_confusion_matrix(lr, X_train, y_train)
+    cm = confusion_matrix(y_train, lr_preds)
+
+# Display confusion matrix
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+    disp.plot()
+    
 
     # Hyperparameter optimization for Decision Tree Classifier
     parameters = {
@@ -159,3 +170,10 @@ def enrich_playlist(sp, username, playlist_id, playlist_tracks):
     # Adding songs to playlist
     list_track = df.loc[df['prediction']  == 1]['track_id']
     enrich_playlist(sp, username, playlist_id, list_track)  
+
+if __name__ == "__main__":
+    df_myplaylist=""
+    with open("playlists.json") as f:
+        df_myplaylist=pd.json_normalize(f)
+    train(df_myplaylist)
+    
