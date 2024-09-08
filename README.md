@@ -1,3 +1,3 @@
 # spot-your-fi
 
-*Capstone 2024 
+![My Image](Spot-Your-Fi.png)
